@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Mainboard</string>
+    <string name="main_wait">Vérification de l\'état du serveur</string>
 </resources>
