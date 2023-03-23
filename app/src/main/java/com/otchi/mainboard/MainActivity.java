@@ -5,27 +5,27 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.ArrayAdapter;
+import android.widget.GridView;
 import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.otchi.mainboard.activity.StartServerActivity;
+import com.otchi.mainboard.library.AppGridAdapter;
 import com.otchi.mainboard.modele.Application;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
-    public String apiUrl = "http://192.168.1.38:3001/";
+    public String apiUrl = "http://otchi.ovh:3000/";
     public ArrayList<Application> applications;
 
     @Override
@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
                         for (int i = 0; i < apps.length(); i++) {
                             this.applications.add(new Application(apps.getJSONObject(i)));
                         }
+                        showApps();
                     } catch (JSONException e) {
                         throw new RuntimeException(e);
                     }
@@ -68,5 +69,18 @@ public class MainActivity extends AppCompatActivity {
         };
 
         requestQueue.add(request);
+    }
+
+    void showApps() {
+        GridView gridView = findViewById(R.id.main_gv_apps);
+
+        AppGridAdapter arrayAdapter = new AppGridAdapter(this,applications);
+        gridView.setAdapter(arrayAdapter);
+
+        gridView.setOnItemClickListener((a, v, position, id) -> {
+            Application app = (Application) gridView.getItemAtPosition(position);
+
+            Toast.makeText(MainActivity.this, "Selected : " + app.name,Toast.LENGTH_LONG).show();
+        });
     }
 }
