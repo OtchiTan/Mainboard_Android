@@ -1,73 +1,72 @@
 package com.otchi.mainboard;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.StrictMode;
-import android.view.View;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.otchi.mainboard.activity.HomeActivity;
-import com.otchi.mainboard.library.MagicPacket;
+import com.otchi.mainboard.activity.StartServerActivity;
+import com.otchi.mainboard.modele.Application;
 
-import java.io.IOException;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
-
-    public String apiUrl = "http://192.168.1.38:3000/";
-    public String ip = "88.138.52.95";
-    public String mac = "D8:97:BA:81:6A:9B";
-    public int port = 9;
+    public String apiUrl = "http://192.168.1.38:3001/";
+    public ArrayList<Application> applications;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         String url = apiUrl;
         RequestQueue requestQueue = Volley.newRequestQueue(this);
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
-                response -> onServerOnline(),
+                response -> {
+                    try {
+                        JSONArray apps = response.getJSONArray("applications");
+                        this.applications = new ArrayList<>();
+                        for (int i = 0; i < apps.length(); i++) {
+                            this.applications.add(new Application(apps.getJSONObject(i)));
+                        }
+                    } catch (JSONException e) {
+                        throw new RuntimeException(e);
+                    }
+                },
                 error -> {
                     error.printStackTrace();
                     if (error.networkResponse == null) {
-                        onServerOffline();
+                        Intent intent = new Intent(this, StartServerActivity.class);
+                        startActivity(intent);
                     } else {
                         Toast toast = new Toast(this);
                         toast.setText("c la merde");
                         toast.show();
                     }
                 }
-        );
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                HashMap headers = new HashMap();
+                headers.put("platform", "MOBILE");
+                return headers;
+            }
+        };
 
         requestQueue.add(request);
-    }
-
-    void onServerOffline() {
-        TextView tv = findViewById(R.id.main_tv_checkOnline);
-        tv.setVisibility(View.GONE);
-        ImageView iv = findViewById(R.id.main_iv_powerOn);
-        iv.setVisibility(View.VISIBLE);
-
-        iv.setOnClickListener(view -> {
-            try {
-                StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-                StrictMode.setThreadPolicy(policy);
-                MagicPacket.send(mac,ip,port);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
-    void onServerOnline() {
-        startActivity(new Intent(this, HomeActivity.class));
     }
 }
