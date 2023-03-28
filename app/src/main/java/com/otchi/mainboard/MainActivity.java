@@ -1,10 +1,16 @@
 package com.otchi.mainboard;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
 import android.widget.Toast;
@@ -33,6 +39,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        ActivityResultLauncher<Intent> launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == Activity.RESULT_OK) {
+                Intent data = result.getData();
+                applications = (ArrayList<Application>) data.getSerializableExtra("apps");
+                showApps();
+            }
+        });
+
         String url = apiUrl;
         RequestQueue requestQueue = Volley.newRequestQueue(this);
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
@@ -52,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
                     error.printStackTrace();
                     if (error.networkResponse == null) {
                         Intent intent = new Intent(this, StartServerActivity.class);
-                        startActivity(intent);
+                        launcher.launch(intent);
                     } else {
                         Toast toast = new Toast(this);
                         toast.setText("c la merde");

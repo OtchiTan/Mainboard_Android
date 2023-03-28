@@ -3,7 +3,9 @@ package com.otchi.mainboard.modele;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Application {
+import java.io.Serializable;
+
+public class Application implements Serializable {
     public int id;
     public String name;
     public String image;
